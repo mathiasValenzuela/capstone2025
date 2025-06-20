@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agendar Hora</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+</head>
+
+<body class="bg-white min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white shadow-2xl rounded-3xl max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 overflow-hidden">
+    <!-- Lado izquierdo: calendario y hora -->
+    <div class="bg-blue-100 text-gray-800 p-8 flex flex-col justify-center">
+      <h2 class="text-3xl font-bold mb-6 text-blue-800">Agenda tu Hora</h2>
+      <label class="mb-2 font-semibold">Selecciona una fecha</label>
+      <input type="date" id="fecha" class="rounded-lg p-2 border border-blue-300 mb-4 w-full outline-none" required>
+
+      <label class="mb-2 font-semibold">Selecciona una hora (24/7)</label>
+      <input type="time" id="hora" class="rounded-lg p-2 border border-blue-300 mb-6 w-full outline-none" required>
+
+      <label class="mb-2 font-semibold">Selecciona una sala</label>
+      <select id="sala" class="rounded-lg p-2 border border-blue-300 mb-6 w-full outline-none" required>
+        <option value="">-- Selecciona una sala --</option>
+        <option value="1">Sala 1</option>
+        <option value="2">Sala 2</option>
+        <option value="3">Sala 3</option>
+        <option value="4">Sala 4</option>
+        <option value="5">Sala 5</option>
+        <option value="6">Sala 6</option>
+        <option value="7">Sala 7</option>
+        <option value="8">Sala 8</option>
+      </select>
+
+      <div class="mt-auto text-sm text-blue-600">Disponibilidad 24/7 en tiempo real</div>
+    </div>
+
+    <!-- Lado derecho: formulario de datos -->
+    <div class="p-8 flex flex-col justify-between">
+      <div>
+        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Tus Datos</h3>
+        <input type="text" id="nombre" placeholder="Nombre completo"
+          class="w-full mb-4 p-3 border border-blue-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+          required>
+        <input type="text" id="rut" placeholder="RUT (ej: 12.345.678-9)"
+          class="w-full mb-4 p-3 border border-blue-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+          required>
+        <input type="email" id="email" placeholder="Correo electrónico"
+          class="w-full mb-4 p-3 border border-blue-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+        <input type="tel" id="telefono" placeholder="Teléfono"
+          class="w-full mb-4 p-3 border border-blue-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+      </div>
+      <button id="btnReservar"
+        class="mt-6 bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg text-lg font-bold transition duration-300 shadow-lg">
+        Confirmar Reserva
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Validar RUT en tiempo real
+    document.getElementById('rut').addEventListener('blur', function () {
+      const rut = this.value.replace(/\./g, '');
+      fetch(`/verificar-rut?rut=${rut}`)
+        .then(response => response.json())
+        .then(data => {
+          if (!data.valido) alert('RUT no registrado en el sistema');
+        });
+    });
+
+    // Manejar reserva
+    document.getElementById('btnReservar').addEventListener('click', async () => {
+      const reserva = {
+        nombre: document.getElementById('nombre').value,
+        rut: document.getElementById('rut').value.replace(/\./g, ''),
+        email: document.getElementById('email').value,
+        telefono: document.getElementById('telefono').value,
+        fecha: document.getElementById('fecha').value,
+        hora: document.getElementById('hora').value,
+        salaId: document.getElementById('sala').value
+      };
+
+      // Validación básica
+      if (!reserva.rut || !reserva.fecha || !reserva.hora || !reserva.salaId) {
+        alert('Complete todos los campos obligatorios');
+        return;
+      }
+
+      try {
+        const inicio = new Date(`${reserva.fecha}T${reserva.hora}`);
+        const fin = new Date(inicio.getTime() + 3600000); // +1 hora
+
+        const response = await fetch('/crear-reserva', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...reserva,
+            inicio: inicio.toISOString(),
+            fin: fin.toISOString()
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        alert('Reserva creada exitosamente!');
+        window.location.reload();
+      } catch (error) {
+        alert(error.message || 'Error al crear reserva');
+      }
+    });
+  </script>
+</body>
+
+</html>
