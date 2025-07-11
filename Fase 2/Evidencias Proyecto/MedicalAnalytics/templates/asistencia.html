@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia al Paciente IA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #0078D4;
+            --primary-light: #4A9DFF;
+            --primary-dark: #005A9E;
+            --secondary: #00B294;
+            --danger: #FF4D4D;
+            --warning: #FF9D1E;
+            --info: #00B0F0;
+            --light: #F3F2F1;
+            --dark: #201F1E;
+            --gray: #EDEBE9;
+            --gray-light: #F3F2F1;
+            --gray-dark: #8A8886;
+            --bg-light: #FFFFFF;
+            --bg-dark: #252423;
+            --text-light: #FFFFFF;
+            --text-dark: #201F1E;
+            --card-bg-light: #FFFFFF;
+            --card-bg-dark: #2A2928;
+            --border-light: #EDEBE9;
+            --border-dark: #3B3A39;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background-color: var(--card-bg-light);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 70vh;
+            border: 1px solid var(--border-light);
+        }
+        
+        .dark-mode .chat-container {
+            background-color: var(--card-bg-dark);
+            border-color: var(--border-dark);
+        }
+        
+        .chat-header {
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .chat-header h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        
+        .chat-header p {
+            opacity: 0.9;
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+        
+        .chat-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background-color: var(--bg-light);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dark-mode .chat-body {
+            background-color: var(--bg-dark);
+        }
+        
+        .chat-message {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.3s ease-out;
+            word-wrap: break-word;
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+        }
+        
+        .user-message {
+            background: var(--primary);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            margin-left: auto;
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+        }
+        
+        .bot-message {
+            background-color: var(--card-bg-light);
+            border: 1px solid var(--border-light);
+            color: var(--text-dark);
+            border-radius: 18px 18px 18px 4px;
+            margin-right: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dark-mode .bot-message {
+            background-color: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-light);
+        }
+        
+        .chat-input {
+            padding: 1.5rem;
+            background-color: var(--card-bg-light);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+        }
+        
+        .dark-mode .chat-input {
+            background-color: var(--card-bg-dark);
+            border-top-color: var(--border-dark);
+        }
+        
+        .input-group {
+            flex-grow: 1;
+        }
+        
+        .input-group input {
+            border-radius: 12px 0 0 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            background-color: var(--card-bg-light);
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .input-group input {
+            border-color: var(--border-dark);
+            background-color: var(--card-bg-dark);
+            color: var(--text-light);
+        }
+        
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(0, 120, 212, 0.25);
+            background-color: var(--card-bg-light);
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .input-group input:focus {
+            background-color: var(--card-bg-dark);
+            color: var(--text-light);
+        }
+        
+        .input-group button {
+            border-radius: 0 12px 12px 0;
+            background-color: var(--primary);
+            border: none;
+            padding: 0 1.5rem;
+            color: white;
+        }
+        
+        .input-group button:hover {
+            background-color: var(--primary-light);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .example-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 1rem;
+        }
+        
+        .example-list li {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background-color: var(--card-bg-light);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            border: 1px solid var(--border-light);
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .example-list li {
+            background-color: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-light);
+        }
+        
+        .example-list li:hover {
+            background-color: var(--gray-light);
+        }
+        
+        .dark-mode .example-list li:hover {
+            background-color: #3B3A39;
+        }
+        
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-style: italic;
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .loading-indicator {
+            color: var(--text-light);
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(239, 239, 241, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .debug-panel {
+            background-color: var(--card-bg-light);
+            border-top: 1px solid var(--border-light);
+            padding: 15px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .debug-panel {
+            background-color: var(--card-bg-dark);
+            border-color: var(--border-dark);
+            color: var(--text-light);
+        }
+        
+        .debug-header {
+            cursor: pointer;
+            padding: 10px;
+            background-color: var(--gray-light);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .debug-header {
+            background-color: #3B3A39;
+            color: var(--text-light);
+        }
+        
+        .debug-content {
+            display: block;
+        }
+        
+        .debug-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: var(--bg-light);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .dark-mode .debug-entry {
+            background-color: #3B3A39;
+        }
+        
+        .badge-month {
+            background-color: var(--primary-light);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+            display: inline-block;
+        }
+        
+        /* Scrollbar personalizada */
+        .chat-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chat-body::-webkit-scrollbar-track {
+            background: var(--card-bg-light);
+            border-radius: 4px;
+        }
+        
+        .dark-mode .chat-body::-webkit-scrollbar-track {
+            background: var(--card-bg-dark);
+        }
+        
+        .chat-body::-webkit-scrollbar-thumb {
+            background: var(--gray-dark);
+            border-radius: 4px;
+        }
+        
+        .chat-body::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        .debug-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .debug-panel::-webkit-scrollbar-track {
+            background: var(--card-bg-light);
+            border-radius: 4px;
+        }
+        
+        .dark-mode .debug-panel::-webkit-scrollbar-track {
+            background: var(--card-bg-dark);
+        }
+        
+        .debug-panel::-webkit-scrollbar-thumb {
+            background: var(--gray-dark);
+            border-radius: 4px;
+        }
+        
+        .debug-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        /* Toggle switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+        
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin: 0 10px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #005A9E;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .theme-icon {
+            font-size: 1.2rem;
+            color: var(--text-dark);
+        }
+        
+        .dark-mode .theme-icon {
+            color: var(--text-light);
+        }
+        
+        /* Responsividad */
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 1rem;
+                min-height: 80vh;
+            }
+            
+            .chat-message {
+                max-width: 90%;
+            }
+        }
+
+        .btn-outline-primary {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left me-2"></i> Volver al Inicio
+            </a>
+            <h3 class="mb-0 text-primary">Asistencia al Paciente IA</h3>
+            <div class="theme-switch-wrapper">
+                <i class="bi bi-sun-fill theme-icon"></i>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+                <i class="bi bi-moon-fill theme-icon"></i>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-header">
+                <h4><i class="bi bi-robot"></i> Asistente Médico Inteligente</h4>
+                <p>Consulta información sobre pacientes con nombre o RUT</p>
+            </div>
+            
+            <div class="chat-body" id="chat-box">
+                <div class="chat-message bot-message">
+                    <strong>Asistente IA:</strong>
+                    <div class="mt-2">¡Hola! Soy tu asistente médico IA. ¿En qué puedo ayudarte hoy?</div>
+                    <div class="mt-3">
+                        <p><strong>Puedes buscar información de pacientes usando:</strong></p>
+                        <ul class="example-list">
+                            <li>"Buscar paciente Juan Pérez"</li>
+                            <li>"Información del paciente 12.345.678-9"</li>
+                            <li>"Historial médico de María González en ABRIL"</li>
+                            <li>"Datos del paciente Carlos Sánchez en MAYO"</li>
+                        </ul>
+                        <div class="mt-2 small">
+                            <p>Los meses disponibles son:</p>
+                            <div class="d-flex flex-wrap">
+                                {% for mes in ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'] %}
+                                    <span class="badge-month">{{ mes }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="text" id="user-input" class="form-control" 
+                            placeholder="Escribe tu consulta..." autocomplete="off">
+                    <button id="sendMessageBtn" class="btn btn-primary text-white">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="debug-panel mt-4">
+            <div class="debug-header" onclick="toggleDebug()">
+                <i class="bi bi-bug"></i> Registro de Depuración
+            </div>
+            <div class="debug-content" id="debug-content">
+                <div id="debug-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle para modo claro/oscuro
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        // Verificar preferencia del usuario
+        if (localStorage.getItem('darkMode')) {
+            body.classList.add('dark-mode');
+            themeToggle.checked = true;
+        }
+        
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                body.classList.remove('dark-mode');
+                localStorage.removeItem('darkMode');
+            }
+        });
+
+        function addDebugLog(message) {
+            const debugLog = document.getElementById('debug-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'debug-entry mb-2';
+            logEntry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugLog.appendChild(logEntry);
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
+
+        function toggleDebug() {
+            const content = document.getElementById('debug-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function addMessage(sender, text, type) {
+            const chatBox = document.getElementById('chat-box');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${type === 'user' ? 'user-message' : 'bot-message'}`;
+            
+            // Formatear texto médico con mejor presentación
+            let formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Negritas
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')              // Cursivas
+                .replace(/---(.*?)---/g, '<hr><h5>$1</h5>')        // Encabezados
+                .replace(/\n/g, '<br>');                           // Saltos de línea
+            
+            msgDiv.innerHTML = `
+                <strong>${sender}:</strong>
+                <div class="mt-2">${formattedText}</div>
+            `;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return msgDiv;
+        }
+
+        function showLoading() {
+            const chatBox = document.getElementById('chat-box');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'chat-message bot-message';
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.innerHTML = `
+                <div class="loading-indicator">
+                    <div class="spinner"></div>
+                    <div>Buscando información...</div>
+                </div>
+            `;
+            chatBox.appendChild(loadingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return loadingDiv;
+        }
+
+        function hideLoading(loadingElement) {
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addDebugLog(`Iniciando búsqueda: "${message}"`);
+            
+            // Mostrar mensaje de usuario
+            addMessage('Tú', message, 'user');
+            input.value = '';
+
+            // Mostrar indicador de carga
+            const loadingElement = showLoading();
+            
+            try {
+                addDebugLog("Enviando solicitud al servidor...");
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ mensaje: message })
+                });
+                
+                addDebugLog("Respuesta recibida del servidor");
+                const data = await response.json();
+                
+                addDebugLog(`Tiempo de respuesta: ${data.tiempo}`);
+                addDebugLog(`Pacientes encontrados: ${data.pacientes_encontrados}`);
+                
+                // Eliminar mensaje de carga
+                hideLoading(loadingElement);
+                
+                // Mostrar respuesta formateada
+                addMessage('Asistente IA', data.respuesta, 'bot');
+            } catch (error) {
+                addDebugLog(`Error en la solicitud: ${error.message}`);
+                hideLoading(loadingElement);
+                addMessage('Sistema', '⚠️ Error de conexión con el asistente', 'bot');
+            }
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+        
+        // Inicialización
+        addDebugLog("Sistema iniciado. Esperando consultas...");
+    </script>
+</body>
+</html>
